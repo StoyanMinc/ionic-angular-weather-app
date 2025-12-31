@@ -1,16 +1,17 @@
-.container {
-  position: absolute; /* ✅ MUST be positioned */
+.swap-container {
+  position: absolute;
   left: 0px;
-  bottom: -390px; /* hidden state */
   display: flex;
   flex-direction: column;
   background: #fff;
-  border-radius: 25px;
-  padding: 10px 10px 50px 10px;
+  border-top-left-radius: 25px;
+  border-top-right-radius: 25px;
+  padding: 10px;
   gap: 10px;
-  transition: bottom 0.3s ease;
-  touch-action: pan-y;
+  transition: top 0.3s ease;
+  touch-action: none;
   width: 100%;
+  z-index: 1000;
 }
 
 .header {
@@ -56,8 +57,4 @@
 .day-forecast-card img {
   width: 37px;
   height: auto;
-}
-
-.show-forecast {
-  bottom: -25px;
 }

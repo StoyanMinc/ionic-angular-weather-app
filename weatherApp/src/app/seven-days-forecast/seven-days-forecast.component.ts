@@ -1,123 +1,120 @@
 import {
-  Component,
-  ViewChild,
-  ElementRef,
-  AfterViewInit,
+    Component,
+    ViewChild,
+    ElementRef,
+    AfterViewInit,
 } from '@angular/core';
 import { GestureController } from '@ionic/angular';
 import { IonicModule } from '@ionic/angular';
 import { NgZone } from '@angular/core';
 
 @Component({
-  selector: 'app-seven-days-forecast',
-  templateUrl: './seven-days-forecast.component.html',
-  styleUrls: ['./seven-days-forecast.component.scss'],
-  standalone: true,
-  imports: [IonicModule], // ✅ REQUIRED
+    selector: 'app-seven-days-forecast',
+    templateUrl: './seven-days-forecast.component.html',
+    styleUrls: ['./seven-days-forecast.component.scss'],
+    standalone: true,
+    imports: [IonicModule],
 })
 export class SevenDaysForecastComponent implements AfterViewInit {
 
-  @ViewChild('forecastContainer', { read: ElementRef })
-  forecastContainer!: ElementRef;
+    @ViewChild('forecastContainer', { read: ElementRef })
+    forecastContainer!: ElementRef;
 
-  showForecast = false;
-  private openBottomPx = -40; // fully open target (matches .show-forecast)
-  private closedBottomPx = -390; // will be read from computed style on init if available
-  private currentBottomPx = -390;
-  private startBottomPx = -390;
-  // Tuning thresholds
-  private openDragThresholdPx = 140;   // require longer upward drag to open
-  private closeDragThresholdPx = 80;   // shorter downward drag to close
-  private openProgressThreshold = 0.7; // require >70% open to snap open
-  private closeProgressThreshold = 0.4; // <40% open snaps closed
+    showForecast = false;
+    private openTopPx = 0;   
+    private closedTopPx = 0; 
+    private currentTopPx = 0;
+    private startTopPx = 0;
+    private openDragThresholdPx = 140;   
+    private closeDragThresholdPx = 80;   
 
-  constructor(private gestureCtrl: GestureController, private ngZone: NgZone) { }
+    constructor(private gestureCtrl: GestureController, private ngZone: NgZone) { }
 
 
-  ngAfterViewInit() {
-    this.initSwipeGesture();
-    // Initialize measured positions
-    const el = this.forecastContainer.nativeElement as HTMLElement;
-    const computed = window.getComputedStyle(el);
-    const bottom = parseFloat(computed.bottom);
-    if (!Number.isNaN(bottom)) {
-      this.closedBottomPx = bottom;
-      this.currentBottomPx = bottom;
-      this.startBottomPx = bottom;
+    ngAfterViewInit() {
+        this.initSwipeGesture();
+        this.computePositions();
+        requestAnimationFrame(() => {
+            this.computePositions();
+            requestAnimationFrame(() => this.computePositions());
+        });
+        this.currentTopPx = this.closedTopPx;
+        this.startTopPx = this.closedTopPx;
+        this.setTop(this.closedTopPx, false);
     }
-    // Ensure inline bottom is set so we can animate/drag reliably
-    this.setBottom(this.closedBottomPx, false);
-  }
 
-  private initSwipeGesture() {
-    const gesture = this.gestureCtrl.create({
-      el: this.forecastContainer.nativeElement,
-      direction: 'y',
-      gestureName: 'forecast-swipe',
-      threshold: 0,
-      onStart: () => {
-        // Prepare for dragging: freeze current bottom and remove transition
-        this.startBottomPx = this.currentBottomPx;
-        this.setBottom(this.currentBottomPx, false);
-      },
-      onMove: ev => {
-        // Drag by adjusting absolute bottom based on deltaY
-        // deltaY < 0 means user moved up -> increase bottom (move sheet up)
-        const proposed = this.startBottomPx - ev.deltaY;
-        const clamped = this.clamp(proposed, this.openBottomPx, this.closedBottomPx);
-        this.setBottom(clamped, false);
-      },
-      onEnd: ev => {
-        const movedUpBy = this.currentBottomPx - this.startBottomPx; // positive if dragged up, negative if dragged down
-        const range = this.openBottomPx - this.closedBottomPx; // positive (e.g., 310)
-        const progress = (this.currentBottomPx - this.closedBottomPx) / range; // 0 (closed) -> 1 (open)
+    private initSwipeGesture() {
+        const gesture = this.gestureCtrl.create({
+            el: this.forecastContainer.nativeElement,
+            direction: 'y',
+            gestureName: 'forecast-swipe',
+            threshold: 0,
+      disableScroll: true,
+      passive: false,
+      gesturePriority: 100,
+            onStart: () => {
+                this.computePositions();
+                this.startTopPx = this.currentTopPx;
+                this.setTop(this.currentTopPx, false);
+            },
+            onMove: ev => {
+                const openDownwards = this.openTopPx > this.closedTopPx;
+                const proposed = openDownwards
+                    ? this.startTopPx - ev.deltaY   
+                    : this.startTopPx + ev.deltaY;  
+                const clamped = this.clamp(proposed, this.openTopPx, this.closedTopPx);
+                this.setTop(clamped, false);
+            },
+            onEnd: ev => {
+        this.computePositions();
         let shouldOpen: boolean;
-        if (ev.velocityY <= -0.25) {
-          // quick fling up -> open
+        if (ev.velocityY <= -0.3) {
           shouldOpen = true;
-        } else if (ev.velocityY >= 0.25) {
-          // quick fling down -> close
-          shouldOpen = false;
-        } else if (movedUpBy >= this.openDragThresholdPx) {
-          // dragged up past threshold -> open
-          shouldOpen = true;
-        } else if (movedUpBy <= -this.closeDragThresholdPx) {
-          // dragged down past threshold -> close
+        } else if (ev.velocityY >= 0.3) {
           shouldOpen = false;
         } else {
-          // fallback: use asymmetric progress thresholds
-          if (progress >= this.openProgressThreshold) {
+          const distToOpen = Math.abs(this.currentTopPx - this.openTopPx);
+          const distToClosed = Math.abs(this.currentTopPx - this.closedTopPx);
+          if (distToOpen + this.openDragThresholdPx <= distToClosed) {
             shouldOpen = true;
-          } else if (progress <= this.closeProgressThreshold) {
+          } else if (distToClosed + this.closeDragThresholdPx <= distToOpen) {
             shouldOpen = false;
           } else {
-            // middle zone: choose based on last state
-            shouldOpen = this.showForecast;
+            shouldOpen = distToOpen <= distToClosed;
           }
         }
-        const target = shouldOpen ? this.openBottomPx : this.closedBottomPx;
-        this.setBottom(target, true);
-        this.ngZone.run(() => {
-          this.showForecast = shouldOpen;
+                const target = shouldOpen ? this.openTopPx : this.closedTopPx;
+                this.setTop(target, true);
+                this.ngZone.run(() => {
+                    this.showForecast = shouldOpen;
+                });
+            },
         });
-      },
-    });
 
-    gesture.enable();
-  }
+        gesture.enable();
+    }
 
-  private setBottom(valuePx: number, animate: boolean) {
-    const el = this.forecastContainer.nativeElement as HTMLElement;
-    el.style.transition = animate ? 'bottom 300ms ease' : 'none';
-    el.style.bottom = `${valuePx}px`;
-    this.currentBottomPx = valuePx;
-  }
+    private setTop(valuePx: number, animate: boolean) {
+        const el = this.forecastContainer.nativeElement as HTMLElement;
+        el.style.transition = animate ? 'top 300ms ease' : 'none';
+        el.style.top = `${valuePx}px`;
+        this.currentTopPx = valuePx;
+    }
 
-  private clamp(value: number, minInclusive: number, maxInclusive: number): number {
-    // Note: min could be greater than max if using negatives, so normalize bounds
-    const min = Math.min(minInclusive, maxInclusive);
-    const max = Math.max(minInclusive, maxInclusive);
-    return Math.max(min, Math.min(max, value));
-  }
+    private computePositions() {
+        const el = this.forecastContainer.nativeElement as HTMLElement;
+        const parent = (el.offsetParent as HTMLElement | null) ?? el.parentElement ?? document.body;
+        const parentHeight = (parent as HTMLElement).clientHeight || window.innerHeight;
+        const elBox = el.getBoundingClientRect();
+        const elHeight = Math.max(el.offsetHeight || 0, el.scrollHeight || 0, elBox.height || 0);
+        this.closedTopPx = 0;
+        this.openTopPx = parentHeight - elHeight;
+    }
+
+    private clamp(value: number, minInclusive: number, maxInclusive: number): number {
+        const min = Math.min(minInclusive, maxInclusive);
+        const max = Math.max(minInclusive, maxInclusive);
+        return Math.max(min, Math.min(max, value));
+    }
 
 }
