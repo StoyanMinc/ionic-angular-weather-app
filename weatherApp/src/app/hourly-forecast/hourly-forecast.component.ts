@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { WeatherService } from '../weather.service';
+import { UtilityService } from '../utility.service';
 
 @Component({
   selector: 'app-hourly-forecast',
@@ -8,7 +10,7 @@ import { Component, OnInit } from '@angular/core';
 })
 export class HourlyForecastComponent  implements OnInit {
 
-  constructor() { }
+  constructor(public weatherService: WeatherService, public utilityService: UtilityService) { }
 
   ngOnInit() {}
 

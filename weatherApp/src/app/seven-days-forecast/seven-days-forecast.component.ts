@@ -7,6 +7,8 @@ import {
 import { GestureController } from '@ionic/angular';
 import { IonicModule } from '@ionic/angular';
 import { NgZone } from '@angular/core';
+import { WeatherService } from '../weather.service';
+import { UtilityService } from '../utility.service';
 
 @Component({
     selector: 'app-seven-days-forecast',
@@ -21,14 +23,19 @@ export class SevenDaysForecastComponent implements AfterViewInit {
     forecastContainer!: ElementRef;
 
     showForecast = false;
-    private openTopPx = 0;   
-    private closedTopPx = 0; 
+    private openTopPx = 0;
+    private closedTopPx = 0;
     private currentTopPx = 0;
     private startTopPx = 0;
-    private openDragThresholdPx = 140;   
-    private closeDragThresholdPx = 80;   
+    private openDragThresholdPx = 140;
+    private closeDragThresholdPx = 80;
 
-    constructor(private gestureCtrl: GestureController, private ngZone: NgZone) { }
+    constructor(
+        private gestureCtrl: GestureController,
+        private ngZone: NgZone,
+        public weatherService: WeatherService,
+        public utilityService: UtilityService
+    ) { }
 
 
     ngAfterViewInit() {
@@ -49,9 +56,9 @@ export class SevenDaysForecastComponent implements AfterViewInit {
             direction: 'y',
             gestureName: 'forecast-swipe',
             threshold: 0,
-      disableScroll: true,
-      passive: false,
-      gesturePriority: 100,
+            disableScroll: true,
+            passive: false,
+            gesturePriority: 100,
             onStart: () => {
                 this.computePositions();
                 this.startTopPx = this.currentTopPx;
@@ -60,29 +67,29 @@ export class SevenDaysForecastComponent implements AfterViewInit {
             onMove: ev => {
                 const openDownwards = this.openTopPx > this.closedTopPx;
                 const proposed = openDownwards
-                    ? this.startTopPx - ev.deltaY   
-                    : this.startTopPx + ev.deltaY;  
+                    ? this.startTopPx - ev.deltaY
+                    : this.startTopPx + ev.deltaY;
                 const clamped = this.clamp(proposed, this.openTopPx, this.closedTopPx);
                 this.setTop(clamped, false);
             },
             onEnd: ev => {
-        this.computePositions();
-        let shouldOpen: boolean;
-        if (ev.velocityY <= -0.3) {
-          shouldOpen = true;
-        } else if (ev.velocityY >= 0.3) {
-          shouldOpen = false;
-        } else {
-          const distToOpen = Math.abs(this.currentTopPx - this.openTopPx);
-          const distToClosed = Math.abs(this.currentTopPx - this.closedTopPx);
-          if (distToOpen + this.openDragThresholdPx <= distToClosed) {
-            shouldOpen = true;
-          } else if (distToClosed + this.closeDragThresholdPx <= distToOpen) {
-            shouldOpen = false;
-          } else {
-            shouldOpen = distToOpen <= distToClosed;
-          }
-        }
+                this.computePositions();
+                let shouldOpen: boolean;
+                if (ev.velocityY <= -0.3) {
+                    shouldOpen = true;
+                } else if (ev.velocityY >= 0.3) {
+                    shouldOpen = false;
+                } else {
+                    const distToOpen = Math.abs(this.currentTopPx - this.openTopPx);
+                    const distToClosed = Math.abs(this.currentTopPx - this.closedTopPx);
+                    if (distToOpen + this.openDragThresholdPx <= distToClosed) {
+                        shouldOpen = true;
+                    } else if (distToClosed + this.closeDragThresholdPx <= distToOpen) {
+                        shouldOpen = false;
+                    } else {
+                        shouldOpen = distToOpen <= distToClosed;
+                    }
+                }
                 const target = shouldOpen ? this.openTopPx : this.closedTopPx;
                 this.setTop(target, true);
                 this.ngZone.run(() => {

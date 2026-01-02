@@ -4,47 +4,14 @@
         <p>7-Day Forecast</p>
     </div>
     <div class="days-forecast-container">
+        @for(day of weatherService.weather()!.daily.time; track $index) {
         <div class="day-forecast-card">
-            <p>Mon</p>
-            <img src="assets/icon/partly-cloudy.svg" alt="weather-image">
-            <p>20°C</p>
-            <p>Partly Cloudy</p>
+            <p>{{utilityService.getDayString(day) }}</p>
+            <img [src]="utilityService.getWeatherIcon(weatherService.weather()!.daily.weathercode[$index], 1)" alt="weather-image">
+            <p>min: {{weatherService.weather()!.daily.temperature_2m_min[$index] }} / max:
+                {{weatherService.weather()!.daily.temperature_2m_max[$index] }}°C</p>
+            <p>{{ utilityService.getWeatherDescription(weatherService.weather()!.daily.weathercode[$index]) }}</p>
         </div>
-        <div class="day-forecast-card">
-            <p>Tue</p>
-            <img src="assets/icon/partly-cloudy.svg" alt="weather-image">
-            <p>20°C</p>
-            <p>Partly Cloudy</p>
-        </div>
-        <div class="day-forecast-card">
-            <p>Wed</p>
-            <img src="assets/icon/partly-cloudy.svg" alt="weather-image">
-            <p>20°C</p>
-            <p>Partly Cloudy</p>
-        </div>
-        <div class="day-forecast-card">
-            <p>Thu</p>
-            <img src="assets/icon/partly-cloudy.svg" alt="weather-image">
-            <p>20°C</p>
-            <p>Partly Cloudy</p>
-        </div>
-        <div class="day-forecast-card">
-            <p>Fri</p>
-            <img src="assets/icon/partly-cloudy.svg" alt="weather-image">
-            <p>20°C</p>
-            <p>Partly Cloudy</p>
-        </div>
-        <div class="day-forecast-card">
-            <p>Sat</p>
-            <img src="assets/icon/partly-cloudy.svg" alt="weather-image">
-            <p>20°C</p>
-            <p>Partly Cloudy</p>
-        </div>
-        <div class="day-forecast-card">
-            <p>Sun</p>
-            <img src="assets/icon/partly-cloudy.svg" alt="weather-image">
-            <p>20°C</p>
-            <p>Partly Cloudy</p>
-        </div>
+        }
     </div>
 </div>

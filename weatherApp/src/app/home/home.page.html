@@ -1,9 +1,14 @@
 <div class="container">
-  <div class="current-weather-container" >
-    <app-current-weather />
-    <app-hourly-forecast />
-  </div>
-  <div class="seven-days-forecast-container">
-    <app-seven-days-forecast />
-  </div>
+    <app-hide-menu [showHideMenu]="showHideMenu" (toggleHideMenu)="toggleHideMenu()" />
+    <div class="current-weather-container">
+        <app-current-weather (toggleHideMenu)="toggleHideMenu()" />
+        @if(weatherService.weather()) {
+        <app-hourly-forecast />
+        }
+    </div>
+    @if(weatherService.weather()) {
+    <div class="seven-days-forecast-container">
+        <app-seven-days-forecast />
+    </div>
+    }
 </div>

@@ -1,40 +1,48 @@
 <div class="container">
     <div class="header">
         <div class="location">
-            <p>Plovdiv, Bulgaria</p>
-            <p>Monday, 29 December</p>
+            @if(city()) {
+            <p>{{ city()!.name}}, {{ city()!.country }}</p>
+            }@else {
+            <p>No selected city</p>
+            }
+            <p>{{ currentDate }}</p>
         </div>
-        <div class="menu">
+        <div class="menu" (click)="toggleHideMenu.emit()">
             <div class="menu-line"></div>
             <div class="menu-line"></div>
             <div class="menu-line"></div>
         </div>
     </div>
+    @if(weatherData()) {
     <div class="weather-info">
-        <img class="current-weather-image" src="assets/icon/partly-cloudy.svg" alt="weather-image">
+        <img class="current-weather-image" [src]="utilityService.getWeatherIcon(weatherData()!.current_weather.weathercode, weatherData()!.current_weather.is_day)" alt="weather-image">
         <div class="weather-temperature">
-            <p class="temperature">20°</p>
-            <p class="weather-description">Partly Cloudy</p>
+            <p class="temperature">{{ weatherData()!.current_weather.temperature }}{{ weatherData()!.current_weather_units.temperature }}</p>
+            <p class="weather-description">{{ weatherData()!.current_weather.weatherDescription }}</p>
         </div>
     </div>
     <div class="temperature-amplitude">
-        <div class="temperature-amplitude-value">high: 26°C <span class="arrow-up"></span></div>
-        <div class="temperature-amplitude-value">low: 18°C <span class="arrow-down"></span></div>
+        <div class="temperature-amplitude-value">{{ weatherData()!.current_weather.maxTemp }}{{
+            weatherData()!.current_weather_units.temperature }} <span class="arrow-up"></span></div>
+        <div class="temperature-amplitude-value">{{weatherData()!.current_weather.minTemp}}{{weatherData()!.current_weather_units.temperature}} <span class="arrow-down"></span></div>
     </div>
     <div class="weather-details">
         <div class="weather-details-item">
             <p>Humidity</p>
-            <p>40%</p>
+            <p>{{weatherData()!.current_weather.humidity}}%</p>
         </div>
         <div class="divider"></div>
         <div class="weather-details-item">
             <p>Wind</p>
-            <p>19km/h</p>
+            <p>{{weatherData()!.current_weather.windspeed}}{{weatherData()!.current_weather_units.windspeed}}</p>
         </div>
         <div class="divider"></div>
         <div class="weather-details-item">
             <p>Rain</p>
-            <p>24%</p>
+            <p>{{weatherData()!.current_weather.chanceOfRain}}%</p>
         </div>
     </div>
+    }
+
 </div>

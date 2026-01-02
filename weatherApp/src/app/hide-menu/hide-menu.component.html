@@ -1,0 +1,24 @@
+<div class="hide-menu-container" [class.show]="showHideMenu">
+    <div class="hide-menu-container-header">
+        <span> Search for a city</span>
+        <button class="close-button" (click)="hideMenu()"></button>
+    </div>
+    <div class="input-holder">
+        <input type="text" id="city" placeholder="Enter city name" (input)="searchCity($event)" [value]="searchingCity">
+    </div>
+    @if(cities.length > 0) {
+    <div class="city-list">
+        @for(city of cities; track city) {
+        <div class="result-item" (click)="selectCity(city)">
+            <p>{{ city.name }}, {{ city.country }}</p>
+        </div>
+        }
+    </div>
+    } @else if(noFound && searchingCity.length > 2) {
+    <div class="city-list">
+        <div class="result-item">
+            <p>No results found for "<span>{{ searchingCity }}</span>"</p>
+        </div>
+    </div>
+    }
+</div>
