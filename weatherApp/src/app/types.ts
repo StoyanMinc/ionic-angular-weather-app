@@ -17,6 +17,14 @@ export interface City {
     timezone: string;
 }
 
+export interface CityFromLocation {
+    name: string;
+    country: string;
+    country_code: string;
+    latitude: number;
+    longitude: number;
+}
+
 export interface WeatherData {
     current_weather: {
         interval: 900,

@@ -1,7 +1,8 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { WeatherService } from '../weather.service';
 import { FormsModule } from '@angular/forms';
-import { City } from '../types';
+import { City, CityFromLocation } from '../types';
+import { LocationService } from '../location.service';
 
 @Component({
     selector: 'app-hide-menu',
@@ -20,7 +21,7 @@ export class HideMenuComponent {
     searchingCity: string = '';
     noFound: boolean = false;
 
-    constructor(private weatherService: WeatherService) { }
+    constructor(private weatherService: WeatherService, private locationService: LocationService) { }
 
     hideMenu() {
         this.toggleHideMenu.emit();
@@ -45,13 +46,21 @@ export class HideMenuComponent {
         }, 300);
     }
 
-    async selectCity(city: City) {
+    async selectCity(city: City | CityFromLocation) {
         this.weatherService.setCity(city)
         await this.weatherService.getWeather(city.longitude, city.latitude)
         await this.weatherService.saveChosenCity(city)
         this.cities = [];
         this.searchingCity = '';
         this.hideMenu()
+    }
+
+    async loadWeatherFromDeviceLocation() {
+        const city = await this.locationService.loadWeatherFromDeviceLocation();
+        console.log('test2', { city });
+        if (city) {
+            await this.selectCity(city);
+        }
     }
 
 }

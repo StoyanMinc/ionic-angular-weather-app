@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { Preferences } from '@capacitor/preferences'
 import axios from 'axios';
 import { UtilityService } from './utility.service';
-import { City, WeatherData } from './types';
+import { City, CityFromLocation, WeatherData } from './types';
 
 @Injectable({
     providedIn: 'root',
@@ -11,16 +11,16 @@ export class WeatherService {
     private searchCitiesUrl = 'https://geocoding-api.open-meteo.com/v1/search';
     private getWeatherUrl = 'https://api.open-meteo.com/v1/forecast';
 
-    city = signal<City | null>(null)
+    city = signal<City | CityFromLocation | null>(null)
     weather = signal<WeatherData | null>(null)
 
     constructor(private utilityService: UtilityService) { }
 
-    setCity(city: City) {
+    setCity(city: City | CityFromLocation) {
         this.city.set(city)
     }
 
-    async saveChosenCity(city: City) {
+    async saveChosenCity(city: City | CityFromLocation) {
         await Preferences.set({
             key: 'choosen_city',
             value: JSON.stringify(city),
@@ -31,7 +31,7 @@ export class WeatherService {
         const { value } = await Preferences.get({ key: 'choosen_city' })
 
         if (value) {
-            const city = JSON.parse(value) as City
+            const city = JSON.parse(value) as City | CityFromLocation
             await this.getWeather(city.longitude, city.latitude);
             this.setCity(city)
         }

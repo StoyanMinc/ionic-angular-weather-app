@@ -31,7 +31,6 @@ export class UtilityService {
         const t = new Date(hourTime).getTime()
         const sr = new Date(sunrise).getTime()
         const ss = new Date(sunset).getTime()
-        console.log({ t, sr, ss });
         return t >= sr && t < ss
     }
 
@@ -45,7 +44,6 @@ export class UtilityService {
         if(index === 0) {
             index = 1;
         }
-        console.log({ index });
         const chanceOfRain = weatherData.daily.precipitation_probability_max[0];
         const minTemp = weatherData.daily.temperature_2m_min[0];
         const maxTemp = weatherData.daily.temperature_2m_max[0];
@@ -61,7 +59,6 @@ export class UtilityService {
                 weatherData.daily.sunset[0]
             )
         }))
-        console.log({ hourlyForecast });
         weatherData.current_weather.chanceOfRain = chanceOfRain;
         weatherData.current_weather.minTemp = minTemp;
         weatherData.current_weather.maxTemp = maxTemp;

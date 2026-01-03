@@ -4,6 +4,7 @@
         <button class="close-button" (click)="hideMenu()"></button>
     </div>
     <div class="input-holder">
+        <button class="location-button" (click)="loadWeatherFromDeviceLocation()"></button>
         <input type="text" id="city" placeholder="Enter city name" (input)="searchCity($event)" [value]="searchingCity">
     </div>
     @if(cities.length > 0) {
